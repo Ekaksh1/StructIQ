@@ -1,9 +1,11 @@
 import random
 import uuid
 from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, Form
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+import os
 import database  # Assumes database.py contains Asset and Report models
 
 # 1. INITIALIZE APP
@@ -43,17 +45,21 @@ class AuthorityUpdate(BaseModel):
 
 # 5. API ENDPOINTS
 
-@app.get("/assets")
+@app.get("/")
+async def serve_index():
+    return FileResponse("index.html")
+
+@app.get("/api/assets")
 def get_assets(db: Session = Depends(get_db)):
     """Fetches all assets for the Map and Sidebar."""
     return db.query(database.Asset).all()
 
-@app.get("/reports")
+@app.get("/api/reports")
 def get_reports(db: Session = Depends(get_db)):
     """Fetches all citizen reports for the Incident Feed."""
     return db.query(database.Report).all()
 
-@app.post("/assets")
+@app.post("/api/assets")
 def create_asset(asset: AssetCreate, db: Session = Depends(get_db)):
     """Manually adds a new asset with age-calculated health."""
     current_year = 2026
@@ -84,7 +90,7 @@ def create_asset(asset: AssetCreate, db: Session = Depends(get_db)):
     db.refresh(new_asset)
     return new_asset
 
-@app.post("/reports/upload-ai")
+@app.post("/api/reports/upload-ai")
 async def upload_ai_report(
     asset_id: int = Form(...), 
     description: str = Form(...), 
@@ -119,7 +125,7 @@ async def upload_ai_report(
     db.refresh(new_report)
     return {"report_id": new_report.id, "analysis": ai_label, "severity": ai_severity}
 
-@app.post("/weather/trigger-flood")
+@app.post("/api/weather/trigger-flood")
 def trigger_flood_alert(db: Session = Depends(get_db)):
     """Simulates monsoon impact on Chennai Roads."""
     roads = db.query(database.Asset).filter(database.Asset.asset_type == "Road").all()
@@ -129,7 +135,7 @@ def trigger_flood_alert(db: Session = Depends(get_db)):
     db.commit()
     return {"status": "FLOOD ALERT ACTIVE", "affected_count": len(roads)}
 
-@app.post("/reports/{report_id}/resolve")
+@app.post("/api/reports/{report_id}/resolve")
 def resolve_report(report_id: int, db: Session = Depends(get_db)):
     """Deletes a report and restores health."""
     report = db.query(database.Report).filter(database.Report.id == report_id).first()
@@ -144,7 +150,7 @@ def resolve_report(report_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success"}
 
-@app.post("/assets/{asset_id}/maintenance")
+@app.post("/api/assets/{asset_id}/maintenance")
 def perform_maintenance(asset_id: int, db: Session = Depends(get_db)):
     """FEATURE: Admin manually boosts health after repair."""
     asset = db.query(database.Asset).filter(database.Asset.id == asset_id).first()
@@ -157,7 +163,7 @@ def perform_maintenance(asset_id: int, db: Session = Depends(get_db)):
     return {"new_health": asset.health_score, "status": "Maintenance logged"}
 
 # --- JUDGES DEMO SETUP ROUTE ---
-@app.get("/setup-demo")
+@app.get("/api/setup-demo")
 def setup_demo(db: Session = Depends(get_db)):
     """Seeds the database with 9 realistic Chennai landmarks."""
     demo_assets = [
@@ -198,6 +204,12 @@ def setup_demo(db: Session = Depends(get_db)):
     
     db.commit()
     return {"status": "Demo assets loaded successfully", "count": 9}
+
+@app.get("/{file_path:path}")
+async def serve_static(file_path: str):
+    if os.path.exists(file_path):
+        return FileResponse(file_path)
+    raise HTTPException(status_code=404, detail="File not found")
 
 if __name__ == "__main__":
     import uvicorn

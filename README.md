@@ -9,5 +9,5 @@ StructIQ AI Engine: GridSmart Infrastructure Monitoring & Fraud-Resilient Report
 3. Launch the ServerRun the following command in your terminal to start the backend on the required port:Bashuvicorn main:app --reload --port 8080
 4. Initialize Demo DataBefore opening the frontend, visit this URL in your browser to load the 9 Chennai landmarks:👉 http://127.0.0.1:8080/setup-demo🔐 Demo CredentialsTo move from the Citizen Portal to the Authority Command Center, use the following credentials in the login modal:FieldValueCommander IDadminAccess Keychennai123🛠️ API Endpoints SummaryMethodEndpointDescriptionGET/assetsFetches all infrastructure data for the map.POST/reports/upload-aiUploads a citizen report with AI fraud check.POST/weather/trigger-floodDrops all "Road" health by 15% immediately.POST/assets/{id}/maintenanceManually restores 20% health to a specific asset.📡 Hardware Simulation (Telemetry)The dashboard includes a Telemetry Scan. By clicking on an asset name (e.g., Napier Bridge), the system generates a live Chart.js vibration graph. This simulates real-time IoT sensors embedded in the concrete to detect structural resonance.⚖️ LicenseThis project is built for the StructIQ Demo and Hackathon purposes. All landmark coordinates are approximate for visualization.
 Author
-Dev Kohli
-GitHub: @devkohli1129-hash
+Ekaksh Prajapat
+GitHub:https://github.com/Ekaksh1
